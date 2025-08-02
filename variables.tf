@@ -13,6 +13,12 @@ variable "distance" {
      default = 5
   
 }
+
+variable "length" {
+    default = 12
+  
+}
+
 variable "jedi" {
      type = map
      default = {
@@ -20,6 +26,10 @@ variable "jedi" {
      content = "phanius"
      }
   
+}
+
+variable "prefix" {
+    default = "Mr"
 }
 
 variable "gender" {
