@@ -39,3 +39,37 @@ output "os-version" {
 data "local_file" "os" {
   filename = "/etc/os-release"
 }
+
+resource "local_sensitive_file" "name" {
+    filename = var.users[count.index]
+    content = var.content
+    count = 3
+}
+
+resource "local_sensitive_file" "name" {
+    filename = each.value
+    content = var.content
+    for_each = toset(var.users)
+}
+
+terraform {
+  required_providers {
+    local = {
+      source  = "hashicorp/local"
+      version = "1.2.2"
+    }
+    google = {
+      source  = "hashicorp/google"
+      version = "> 3.45.0, !=3.46.0, < 3.48.0"
+    }
+    k8s = {
+      source  = "hashicorp/kubernetes"
+      version = "> 1.12.0, != 1.13.1, < 1.13.3 "
+    }
+
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 1.2.0"
+    }
+  }
+}
