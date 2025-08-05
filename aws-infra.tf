@@ -31,3 +31,16 @@ module "iam_iam-user" {
   create_iam_access_key = false
   create_iam_user_login_profile = false
 }
+
+resource "aws_s3_object" "upload_sonic_media" {
+  bucket = aws_s3_bucket.sonic_media.id
+  key = substr(each.value, 7, length(each.value) - 7)
+  source = each.value
+  for_each = var.media
+}
+
+module "payroll_app" {
+  source  = "../modules/payroll-app"
+  app_region = lookup(var.region, terraform.workspace)
+  ami = lookup(var.ami, terraform.workspace)
+}
