@@ -4,6 +4,9 @@ resource "aws_instance" "dev-server" {
 
     key_name = aws_key_pair.cerberus-key.key_name
     user_data = file("install-nginx.sh")
+    tags = {
+      Name = local.instance_name
+    }
 }
 resource "aws_s3_bucket" "falshpoint"  {
     bucket = "project-flashpoint-paradox"
@@ -43,4 +46,8 @@ module "payroll_app" {
   source  = "../modules/payroll-app"
   app_region = lookup(var.region, terraform.workspace)
   ami = lookup(var.ami, terraform.workspace)
+}
+
+locals {
+  instance_name = "${var.project_name}-${var.department}-server"
 }

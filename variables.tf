@@ -70,6 +70,15 @@ variable "media" {
   
 }
 
+variable "project_name" {
+  type = string
+  default = "storm"
+}
+variable "department" {
+  type = string
+  default = "finance"
+}
+
 
 
 
