@@ -105,3 +105,68 @@ resource "aws_dynamodb_table_item" "upload" {
   EOF
 }
 
+resource "kubernetes_service" "webapp-service" {
+  # Metadata for the Kubernetes Service
+  metadata {
+    # The name of the service
+    name = "webapp-service"
+  }
+
+  # Service specification
+  spec {
+    # Selector to match the pods this service will route traffic to
+    # This assumes your pods have the label `app: webapp`.
+    selector = {
+      app = "frontend"
+    }
+
+    # The type of service, in this case a NodePort
+    type = "NodePort"
+
+    # Define the service port
+    port {
+      # The port on the service itself (where traffic arrives)
+      port = 8080
+
+      # The port on the pods to which the traffic is forwarded
+      target_port = 8080
+
+      # The specific port on each node that exposes the service
+      node_port = 30080
+    }
+  }
+}
+
+resource "kubernetes_deployment" "frontend" {
+  metadata {
+    name = "frontend"
+    labels = {
+      name = "frontend"
+    }
+  } 
+
+  spec {
+    replicas = 4
+    selector {
+      match_labels = {
+        name = "frontend"
+      }
+    }
+    template {
+      metadata {
+        labels = {
+          name = "frontend"
+        }
+      }
+      spec {
+        container {
+          name  = "simple-webapp"
+          image = "kodekloud/webapp-color:v1"
+          port {
+            container_port = 8080
+          }
+        }
+      }
+    }
+  }
+}
