@@ -9,6 +9,8 @@ terraform {
 
 provider "aws" {
   region                      = "us-east-1"
+  # access_key = "dummy_access_key" we can keep them in environment variables
+  # secret_key = "dummy_secret_key" we can keep them in environment variables
   skip_credentials_validation = true
   skip_requesting_account_id  = true
   s3_use_path_style = true
