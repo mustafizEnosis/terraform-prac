@@ -170,3 +170,103 @@ resource "kubernetes_deployment" "frontend" {
     }
   }
 }
+
+resource "docker_image" "php-httpd-image" {
+  name = "php-httpd:challenge"
+  build {
+    path = "${path.cwd}/lamp_stack/php_httpd/"
+    dockerfile = "Dockerfile"
+    label = {
+      challenge : "second"
+    }
+  }
+}
+
+resource "docker_image" "mariadb-image" {
+  name = "mariadb:challenge"
+  build {
+    path = "${path.cwd}/lamp_stack/custom_db/"
+    dockerfile = "Dockerfile"
+    label = {
+      challenge : "second"
+    }
+  }
+}
+
+resource "docker_network" "private_network" {
+  name = "my_network"
+  attachable = true
+  labels {
+    label = "challenge"
+    value = "second"
+  }
+}
+
+resource "docker_container" "php-httpd" {
+  name  = "webserver"
+  hostname = "php-httpd"
+  image = docker_image.php-httpd-image.name
+  networks_advanced {
+    name = docker_network.private_network.name
+  }
+  ports {
+    internal = 80
+    external = 80
+  }
+  labels {
+    label = "challenge"
+    value = "second"
+  }
+  volumes {
+    container_path = "/var/www/html"
+    host_path = "${path.cwd}/lamp_stack/website_content/"
+  }
+}
+
+resource "docker_container" "phpmyadmin" {
+  name  = "db_dashboard"
+  hostname = "phpmyadmin"
+  image = "phpmyadmin/phpmyadmin"
+  networks_advanced {
+    name = docker_network.private_network.name
+  }
+  ports {
+    internal = 80
+    external = 8081
+  }
+  labels {
+    label = "challenge"
+    value = "second"
+  }
+  depends_on = [ docker_container.mariadb ]
+  links  = [docker_container.mariadb.name]
+}
+
+resource "docker_container" "mariadb" {
+  name  = "db"
+  hostname = "db"
+  image = docker_image.mariadb-image.name
+  networks_advanced {
+    name = docker_network.private_network.name
+  }
+  ports {
+    internal = 3306
+    external = 3306
+  }
+  labels {
+    label = "challenge"
+    value = "second"
+  }
+  env = [
+    "MYSQL_ROOT_PASSWORD=1234",
+    "MYSQL_DATABASE=simple-website",  
+  ]
+  volumes {
+    volume_name = docker_volume.mariadb_volume.name
+    container_path = "/var/lib/mysql"
+  }
+}
+
+resource "docker_volume" "mariadb_volume" {
+  name = "mariadb-volume"
+}
