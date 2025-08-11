@@ -79,3 +79,103 @@ output "instance_public_ip" {
 locals {
   instance_name = "${var.project_name}-${var.department}-server"
 }
+
+resource "aws_iam_policy" "codepipeline_policy" {
+  name        = "codepipeline_policy"
+  description = "Policy for CodePipeline to access S3 and other resources"
+  
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:*",
+          "codecommit:*",
+          "codebuild:*",
+          "elasticbeanstalk:*",
+          "cloudformation:*",
+          "autoscaling:*",
+          "ec2:*",
+          "iam:PassRole"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+  
+}
+
+resource "aws_iam_role" "iam_role_for_codepipeline" {
+  name = "iam_role_for_codepipeline"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "codepipeline.amazonaws.com"
+        }
+      }
+    ]
+  })
+  
+}
+
+resource "aws_iam_policy_attachment" "attach_role_policy" {
+  name       = "attach_role_policy"
+  roles      = [aws_iam_role.iam_role_for_codepipeline.name]
+  policy_arn = aws_iam_policy.codepipeline_policy.arn
+}
+
+data "aws_s3_bucket" "artifact_store" {
+  bucket = "terraform-web-app-bucket-*"
+}
+
+resource "aws_codepipeline" "web_app_pipeline" {
+  name = "terraform-web-app-pipeline"
+  role_arn = aws_iam_role.iam_role_for_codepipeline.arn
+  artifact_store {
+    type     = "S3"
+    location = "terraform-web-app-bucket-f8b935ae5f5c"
+  }
+  stage {
+      name = "Source"
+
+      action {
+        name             = "Source"
+        category         = "Source"
+        owner            = "ThirdParty"
+        provider         = "Github"
+        version          = "1"
+        output_artifacts = ["source_output"]
+
+        configuration = {
+          owner = "<USERNAME>"
+          repo  = "terraform-infra"
+          oauth_token = "<ACCESS_TOKEN>"
+          BranchName       = "main"
+        }
+      }
+    }
+
+    stage {
+      name = "Deploy"
+
+      action {
+        name            = "Deploy"
+        category        = "Deploy"
+        owner           = "AWS"
+        provider        = "ElasticBeanstalk"
+        input_artifacts = ["source_output"]
+        version         = "1"
+
+        configuration = {
+          ApplicationName = "terraform-web-app"
+          EnvironmentName = "devm"
+        }
+      }
+    }
+}
+
