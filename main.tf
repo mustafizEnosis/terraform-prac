@@ -105,6 +105,12 @@ resource "aws_dynamodb_table_item" "upload" {
   EOF
 }
 
+resource "null_resource" "local_null_resource" {
+  provisioner "local-exec" {
+    command = "echo 'Provisioning successful' > provisioner.txt"
+  }
+}
+
 resource "kubernetes_service" "webapp-service" {
   # Metadata for the Kubernetes Service
   metadata {
