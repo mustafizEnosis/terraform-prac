@@ -89,6 +89,12 @@ variable "region" {
   default = "us-central1"
 }
 
+variable "tcp_port_list" {
+  description = "List of TCP ports to open"
+  type        = list(number)
+  default     = [22, 80, 443, 3306]
+}
+
 
 
 
