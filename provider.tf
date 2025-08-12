@@ -4,6 +4,10 @@ terraform {
       source = "hashicorp/aws"
       version = "5.13.1"
     }
+    google = {
+      source  = "hashicorp/google"
+      version = "4.74.0"
+    }
   }
 }
 
@@ -20,4 +24,9 @@ provider "aws" {
     s3 = "http://aws:4566"
     dynamodb = "http://aws:4566"
   }
+}
+
+provider "google" {
+  project = var.project_id
+  region  = var.region
 }

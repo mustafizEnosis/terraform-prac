@@ -79,6 +79,16 @@ variable "department" {
   default = "finance"
 }
 
+variable "project_id" {
+  description = "project id"
+  default = "kkgcplabs01-043"
+}
+
+variable "region" {
+  description = "region"
+  default = "us-central1"
+}
+
 
 
 
